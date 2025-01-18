@@ -1,0 +1,33 @@
+*, body, html{
+    box-sizing: border-box;
+    padding: 0;
+    margin: 0;
+    font-family: "Poppins", serif;
+}
+
+
+.head{
+    padding-top: 20px;
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.head p{
+    font-weight: 600;
+    font-size: 20px;
+}
+
+
+.components{
+    border-radius: 50px 50px 0px 0px;
+    display: flex;
+    align-content: center;
+    justify-content: start;
+    flex-direction: column;
+    min-height: 500px;
+    max-height: auto;
+    background-color: #F1FFF3;
+    padding-bottom: 100px;
+}
