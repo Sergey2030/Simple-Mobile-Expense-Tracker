@@ -4,7 +4,7 @@
             <div class="balanceInfo">
                 <div class="totalBalance" @click="totalBalanceModal">
                     <p>Total Balance</p>
-                    <span>${{ totalBalanceUser }}</span>
+                    <span>${{ balance }}</span>
                 </div>
                 <div class="incomeExpenceCont">
                     <div class="income" @click="incomeModal">
@@ -87,6 +87,13 @@
 <script>
 import { onMounted, ref, watch } from "vue"
 
+import { storeToRefs } from 'pinia';
+
+import { useExprenceStore } from "../store/exprenceStore";
+import { useIncomeStore } from "../store/incomeStore";
+import { useBalanceStore } from "../store/totalBalanceStore";
+import { useCategoryStore } from "../store/categoryStore";
+import { useTransactionStore } from "../store/transactionStore";
 export default {
     setup(props, { emit }){
         const showModal = ref(false)
@@ -102,23 +109,32 @@ export default {
         const categoryTransactionExpence = ref("")
         const categoryTransactionIncome = ref("")
 
-        const totalBalanceUser = ref( JSON.parse(localStorage.getItem("fullMoneyUser")) || 0)
 
-        const expenceTransactionLocal = ref(JSON.parse(localStorage.getItem("exprenceTransaction")) || [])
+        const balanceStore = useBalanceStore()
+        balanceStore.getBalance();
+        const { balance } = storeToRefs(balanceStore)
+        console.log(balance);
         
-        const incomeTransactionLocal = ref(JSON.parse(localStorage.getItem("incomeTransactionLocal")) || 0)
+
+        const transactionStore = useTransactionStore()
+        transactionStore.getTransaction();
+        const { transaction } = storeToRefs(transactionStore)
+
+        const exprenceStore = useExprenceStore()
+        exprenceStore.getExprenceTransaction();
+        const { expenceTransactionLocal } = storeToRefs(exprenceStore)
+        
+        const incomeStore = useIncomeStore()
+        // incomeStore.getIncomeTransaction();
+        const { incomeTransactionLocal } = storeToRefs(incomeStore)
+        console.log(incomeTransactionLocal);
+        
 
         const moneyUser = ref("")
 
-        const categoryArr = ref(JSON.parse(localStorage.getItem("category")) || [])
-
-        const updateCategoryLocal = () => {
-            categoryArr.value = JSON.parse(localStorage.getItem("category")) || []
-        }
-
-        watch(() => localStorage.getItem("category"), () => {
-            updateCategoryLocal()
-        })
+        const categoryStore = useCategoryStore()
+        categoryStore.fetchAllCategory();
+        const { categoryArr } = storeToRefs(categoryStore)
 
         const sumTransactionExpence = ref("")
         const sumTransactionIncome = ref("")
@@ -162,8 +178,8 @@ export default {
         
 
         const addMoney = () => {
-            localStorage.setItem("fullMoneyUser", JSON.stringify(moneyUser.value))
-            totalBalanceUser.value = moneyUser.value
+            balanceStore.addBalance(moneyUser.value)
+            balance.value = moneyUser.value
             moneyUser.value = ""
         }
 
@@ -171,44 +187,74 @@ export default {
             if(!categoryTransactionExpence.value || !sumTransactionExpence.value || !dateTransactionExpence.value){
                 return
             }
-            else if(sumTransactionExpence.value > totalBalanceUser.value){
+            else if(sumTransactionExpence.value > balance.value){
                 console.log("нет деняк");
                 
             }else{
-                
-                const id = local.value.length > 0 ? local.value[local.value.length - 1].id + 1 : 1
-                console.log(id);
-                
-                let obj = {
-                    id: id,
-                    category: categoryTransactionExpence.value,
-                    date: dateTransactionExpence.value,
-                    money: sumTransactionExpence.value
-                }
-
-                local.value.push(obj)
-                localStorage.setItem("transaction", JSON.stringify(local.value))
+                transactionStore.addTransaction(dateTransactionExpence.value, sumTransactionExpence.value ,categoryTransactionExpence.value)
 
                 if (!Array.isArray(expenceTransactionLocal.value)) {
                     expenceTransactionLocal.value = [];
                 }
 
-                expenceTransactionLocal.value.push(obj)
-                localStorage.setItem("exprenceTransaction", JSON.stringify(expenceTransactionLocal))
+                exprenceStore.addExprenceTransaction(categoryTransactionExpence.value, dateTransactionExpence.value, sumTransactionExpence.value)
 
-
-                expenceMoneyFunc()
-
-                totalBalanceUser.value = parseInt(totalBalanceUser.value) - parseInt(sumTransactionExpence.value) 
-                localStorage.setItem("fullMoneyUser", JSON.stringify(totalBalanceUser.value))
+                balance.value = parseInt(balance.value) - parseInt(sumTransactionExpence.value) 
+                balanceStore.addBalance(balance.value)
 
                 categoryTransactionExpence.value = ""
                 dateTransactionExpence.value = ""
                 sumTransactionExpence.value = ""
-                
-                closeModalExpence()
 
-                emit("update-transaction")
+                setTimeout(() => {
+                    expenceMoneyFunc()
+                }, 200)
+
+                closeModalExpence()
+            }
+        }
+
+        const incomeMoneyFunc = () => {
+            console.log(incomeTransactionLocal.value);
+            
+            if (Array.isArray(incomeTransactionLocal.value)) {
+                const totalMoney = incomeTransactionLocal.value.reduce((acc, transaction) => {
+                    return acc + parseFloat(transaction.money)
+                }, 0);
+
+                incomeMoney.value = totalMoney;
+            } else {
+                incomeMoney.value = 0
+            }
+        };
+
+        const incomeTransaction = () => {
+            if(!categoryTransactionIncome.value || !sumTransactionIncome.value || !dateTransactionIncome.value){
+                return
+            }else{
+                transactionStore.addTransaction(dateTransactionIncome.value, sumTransactionIncome.value, categoryTransactionIncome.value)
+
+
+                if (!Array.isArray(incomeTransactionLocal.value)) {
+                    incomeTransactionLocal.value = [];
+                }
+
+                incomeStore.addIncomeTransaction(categoryTransactionIncome.value, dateTransactionIncome.value, sumTransactionIncome.value)
+
+                balance.value = parseInt(balance.value) + parseInt(sumTransactionIncome.value) 
+                console.log(balance);
+                
+                balanceStore.addBalance(balance.value)
+                
+                setTimeout(() => {
+                    incomeMoneyFunc()
+                }, 200)
+
+                categoryTransactionIncome.value = ""
+                dateTransactionIncome.value = ""
+                sumTransactionIncome.value = ""
+                
+                closeModalIncome()
             }
         }
 
@@ -224,64 +270,14 @@ export default {
             }
         };
 
-
-        const incomeTransaction = () => {
-            if(!categoryTransactionIncome.value || !sumTransactionIncome.value || !dateTransactionIncome.value){
-                return
-            }else{
-                const id = local.value.length > 0 ? local.value[local.value.length - 1].id + 1 : 1
-                console.log(id);
-
-                let obj = {
-                    id: id,
-                    category: categoryTransactionIncome.value,
-                    date: dateTransactionIncome.value,
-                    money: sumTransactionIncome.value
-                }
-
-                local.value.push(obj)
-                localStorage.setItem("transaction", JSON.stringify(local.value))
-
-                if (!Array.isArray(incomeTransactionLocal.value)) {
-                    incomeTransactionLocal.value = [];
-                }
-
-                incomeTransactionLocal.value.push(obj)
-                localStorage.setItem("incomeTransactionLocal", JSON.stringify(incomeTransactionLocal))
-
-                incomeMoneyFunc()
-
-                totalBalanceUser.value = parseInt(totalBalanceUser.value) + parseInt(sumTransactionIncome.value) 
-                localStorage.setItem("fullMoneyUser", JSON.stringify(totalBalanceUser.value))
-
-                categoryTransactionIncome.value = ""
-                dateTransactionIncome.value = ""
-                sumTransactionIncome.value = ""
-                
-                closeModalIncome()
-                emit("update-transaction")
-            }
-        }
-
-        const incomeMoneyFunc = () => {
-            if (Array.isArray(incomeTransactionLocal.value)) {
-                const totalMoney = incomeTransactionLocal.value.reduce((acc, transaction) => {
-                    return acc + parseFloat(transaction.money)
-                }, 0);
-
-                incomeMoney.value = totalMoney;
-            } else {
-                incomeMoney.value = 0
-            }
-        };
-
-        onMounted(() => {
+        onMounted(async () => {
+            await incomeStore.getIncomeTransaction()
             expenceMoneyFunc()
             incomeMoneyFunc()
         })
 
         return{
-            showModal, closeWindow, openEditWindow, moneyUser, addMoney, totalBalanceUser, 
+            showModal, closeWindow, openEditWindow, moneyUser, addMoney, balance, 
             categoryTransactionExpence, categoryArr, sumTransactionExpence, dateTransactionExpence,
             ExpenceTransaction, expenceMoney, incomeMoney, incomeTransaction, categoryTransactionIncome, sumTransactionIncome, dateTransactionIncome,
             showModalIncome, showModalExpence, expenceModal, showModalTotal, incomeModal, totalBalanceModal, closeModalIncome, closeModalExpence

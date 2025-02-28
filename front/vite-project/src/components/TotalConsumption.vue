@@ -40,20 +40,30 @@
 </template>
 
 <script>
-import { ref, onMounted } from "vue"
+import { ref, onMounted, watch } from "vue"
+
+import { storeToRefs } from 'pinia';
+import { useTransactionStore } from '../store/transactionStore';
+
 export default {
     setup(){
         const foodMoney = ref(0)
         const sportMoney = ref(0)
         const transportMoney = ref(0)
         const clothMoney = ref(0)
+        const transactionStore = useTransactionStore()
+        transactionStore.getTransaction();
+        const { transaction } = storeToRefs(transactionStore)
+        console.log(transaction);
 
         const calculateCategorySums = () => {
-            const transactions = JSON.parse(localStorage.getItem("transaction")) || []
+            foodMoney.value = 0
+            sportMoney.value = 0
+            transportMoney.value = 0
+            clothMoney.value = 0
 
-
-            transactions.forEach((transaction) => {
-                const { category, money } = transaction
+            transaction.value.forEach((transactionElement) => {
+                const { category, money } = transactionElement
 
                 switch (category) {
                     case "Еда":
@@ -74,11 +84,16 @@ export default {
             })
         }
 
-
-        onMounted(() => {
-            calculateCategorySums()
+        watch(transaction, (newTransaction) => {
+            if (newTransaction.length) {
+                calculateCategorySums();
+            }
         })
 
+        onMounted(() => {
+            transactionStore.getTransaction()
+        })
+        
         return{
             foodMoney, sportMoney, transportMoney, clothMoney
         }

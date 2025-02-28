@@ -1,30 +1,17 @@
 <script>
 import { useRouter } from 'vue-router'
-import { ref, watch } from 'vue'
+import { onMounted, ref, watch } from 'vue'
 
 export default {
   setup(){
     const activeTab = ref('home')
 
-    const transaction = ref(JSON.parse(localStorage.getItem("transaction")) || [])
-    console.log(transaction.value);
-    
-
     const setActiveTab = (tabName) => {
       activeTab.value = tabName;
     };
 
-    const updateTransactions = () => {
-      transaction.value = JSON.parse(localStorage.getItem("transaction")) || []
-    }
-
-
-    watch(() => localStorage.getItem("transaction"), () => {
-      updateTransactions()
-    })
-
     return{
-      setActiveTab, activeTab, transaction, updateTransactions
+      setActiveTab, activeTab,
     }
   }
 }

@@ -9,7 +9,6 @@ import { ref, computed } from 'vue';
 import { Pie } from 'vue-chartjs';
 import { Chart as ChartJS, Title, Tooltip, Legend, ArcElement, CategoryScale, LinearScale } from 'chart.js';
 
-// Регистрируем компоненты Chart.js
 ChartJS.register(Title, Tooltip, Legend, ArcElement, CategoryScale, LinearScale);
 
 export default {
@@ -20,10 +19,9 @@ export default {
     }
   },
   components: {
-    Pie, // Регистрируем компонент Pie
+    Pie, 
   },
   setup(props) {
-    // Пересчитываем данные для графика на основе транзакций
     const categoryTotals = computed(() => {
       const totals = {};
       props.transaction.forEach(item => {
@@ -35,7 +33,6 @@ export default {
       return totals;
     });
 
-    // Данные для графика
     const chartData = computed(() => {
       const categories = Object.keys(categoryTotals.value);
       const values = Object.values(categoryTotals.value);

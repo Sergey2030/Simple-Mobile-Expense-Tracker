@@ -19,20 +19,17 @@
 import TotalBalance from "./TotalBalance.vue"
 import TotalConsumption from "./TotalConsumption.vue"
 import TransactionComponentVue from './TransactionComponent.vue'
-import { ref, watch } from "vue"
+import { onMounted, ref, watch } from "vue"
+
+import { storeToRefs } from 'pinia';
+import { useTransactionStore } from '../store/transactionStore';
 export default {
     setup(){
-        const transaction = ref(JSON.parse(localStorage.getItem("transaction")) || [])
-        console.log(transaction.value);
-        
-        const updateTransactions = () => {
-            transaction.value = JSON.parse(localStorage.getItem("transaction")) || []
-        }
 
+        const transactionStore = useTransactionStore()
+        transactionStore.getTransaction();
+        const { transaction } = storeToRefs(transactionStore)
 
-        watch(() => localStorage.getItem("transaction"), () => {
-            updateTransactions()
-        })
 
         return{
             transaction

@@ -17,8 +17,7 @@ import { ref } from "vue"
 export default {
    
     setup(props) {
-        const transactions = props.transactions
-
+        const transactions = props.transaction
 
         return{
             transactions

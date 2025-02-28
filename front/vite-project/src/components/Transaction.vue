@@ -4,10 +4,10 @@
             <div class="head">
                 <p>Транзакции</p>
             </div>
-            <total-balance-vue :transactions ="transactions"/>
+            <total-balance-vue :transactions ="transaction"/>
             <div class="components">
 
-                <transaction-component-vue :transactions ="transactions"/>
+                <transaction-component-vue :transactions ="transaction"/>
             </div>
         </header>
     </div>
@@ -17,22 +17,19 @@
 <script>
 import TotalBalanceVue from './TotalBalance.vue'
 import TransactionComponentVue from './TransactionComponent.vue'
-import { ref, watch } from "vue"
+import { onMounted, ref, watch } from "vue"
+
+import { storeToRefs } from 'pinia';
+import { useTransactionStore } from '../store/transactionStore';
 export default {
     setup(){
-        const transactions = ref(JSON.parse(localStorage.getItem("transaction")) || [])
-
-        const updateTransactions = () => {
-            transactions.value = JSON.parse(localStorage.getItem("transaction")) || []
-        }
-
-
-        watch(() => localStorage.getItem("transaction"), () => {
-            updateTransactions()
-        })
+        
+        const transactionStore = useTransactionStore()
+        transactionStore.getTransaction();
+        const { transaction } = storeToRefs(transactionStore)
 
         return{
-            transactions
+            transaction
         }
     },
     components: {

@@ -2,7 +2,7 @@
     <div class="Container">
         <div class="cateryCont" v-for="category in categoryArr" :key= "category.id">
             <div class="imgCont">
-                <img :src="category.img" alt="">
+                <img :src="category.image" alt="">
             </div>
             <p>{{ category.name }}</p>
         </div>
@@ -19,15 +19,7 @@
 <script>
 export default {
     setup(props) {
-        // const category = [
-        //     {id:0, name: "Спорт"},
-        //     {id:1, name: "еда"},
-        //     {id:2, name: "Одежда"},
-        //     {id:3, name: "Транспорт"},
-        //     {id:4,name:"Зарплата"}
-        // ]
-
-        // localStorage.setItem("category", JSON.stringify(category))
+        
     },
     props:{
         categoryArr: {

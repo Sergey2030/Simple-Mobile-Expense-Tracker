@@ -35,14 +35,25 @@
 
 <script>
 import TotalBalanceVue from './TotalBalance.vue'
-import { ref, watch } from "vue"
+import { onMounted, ref, watch } from "vue"
 import CategorisComponentVue from './CategorisComponent.vue'
+
+import { storeToRefs } from 'pinia';
+import { useCategoryStore } from '../store/categoryStore';
+
+import { useTransactionStore } from '../store/transactionStore';
 export default {
     setup(emit){
-        const categoryArr = ref(JSON.parse(localStorage.getItem("category")) || [])
-
+        
         const showModal = ref(false)
 
+        const categoryStore = useCategoryStore()
+        categoryStore.fetchAllCategory();
+        const { categoryArr } = storeToRefs(categoryStore)
+
+        const transactionStore = useTransactionStore()
+        transactionStore.getTransaction();
+        const { transaction } = storeToRefs(transactionStore)
 
         const moreIconArr = [
             {id: 1, img:"../../giftbox.png"},
@@ -54,16 +65,6 @@ export default {
 
         const newIcon = ref("")
 
-        const transaction = ref(JSON.parse(localStorage.getItem("transaction")) || [])
-
-        const updateTransactions = () => {
-            transaction.value = JSON.parse(localStorage.getItem("transactions")) || []
-        }
-
-        const updateCategoryLocal = () => {
-            categoryArr.value = JSON.parse(localStorage.getItem("category")) || []
-        }
-
         const clicktoIcon = (icon) => {
             console.log(icon);
             newIcon.value = icon
@@ -74,7 +75,6 @@ export default {
 
         const updateCategory = () => {
             showModal.value = true
-
         }
 
         const closeWindow = () => {
@@ -82,32 +82,16 @@ export default {
         }
 
         const addCategory = () => {
-            const id = categoryArr.value.length > 0 ? categoryArr.value[categoryArr.value.length - 1].id + 1 : 1
 
-            let obj = {
-                id: id,
-                name:nameNewCategory.value,  
-                img: newIcon.value
-            }
+            let category = nameNewCategory.value
+            let imageCategory = newIcon.value
 
-            categoryArr.value.push(obj)
-            localStorage.setItem("category", JSON.stringify(categoryArr.value))
+            categoryStore.fetchNewCategry(category, imageCategory);
+
             nameNewCategory.value = ""
             newIcon.value = ""
             showModal.value = false
         }
-
-        
-
-
-        watch(() => localStorage.getItem("transactions"), () => {
-            updateTransactions()
-        })
-
-        watch(() => localStorage.getItem("category"), () => {
-            updateCategoryLocal()
-        })
-
         // const cateryAdd = [
         //     {id:1, name: "Еда", img:"../../public/foodIcon.png"},
         //     {id:2, name: "Спорт", img:"/public/sportIcon.png"},
@@ -115,8 +99,6 @@ export default {
         //     {id:4, name: "Одежда", img:"../../public/clothesIcon.png"},
         //     {id:4, name: "Зарплата", img:"../../public/salaryIcon.png"},
         // ]
-
-        // localStorage.setItem("category", JSON.stringify(cateryAdd))
 
         return{
             categoryArr, transaction, closeWindow, showModal, nameNewCategory, addCategory, updateCategory, newIcon, moreIconArr, clicktoIcon,

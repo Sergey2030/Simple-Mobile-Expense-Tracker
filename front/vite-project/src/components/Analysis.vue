@@ -23,11 +23,34 @@ import { Chart as ChartJS, Title, Tooltip, Legend, ArcElement, CategoryScale, Li
 
 ChartJS.register(Title, Tooltip, Legend, ArcElement, CategoryScale, LinearScale);
 
-import { ref, watch } from "vue"
+import { onMounted, ref, watch } from "vue"
 export default {
 
     setup(){
-        const transaction = ref(JSON.parse(localStorage.getItem("transaction")) || [])
+        const transaction = ref([])
+
+        const transactionFetch = async () => {
+            try {
+                const response = await fetch("http://localhost:5000/api/transactions/",{
+                method: "GET",
+                headers: {
+                "Content-Type": "application/json"
+                },
+                })
+
+                if(!response.ok){
+                console.log("не")
+                return
+                }
+
+                const data = await response.json()
+                transaction.value = data
+                console.log(transaction.value);
+                
+            } catch (error) {
+                console.error("Ошибка запроса:", error);
+            }
+            }
 
         const updateTransactions = () => {
             transaction.value = JSON.parse(localStorage.getItem("transactions")) || []
@@ -36,6 +59,10 @@ export default {
 
         watch(() => localStorage.getItem("transactions"), () => {
             updateTransactions()
+        })
+
+        onMounted(() => {
+            transactionFetch()
         })
 
         return{

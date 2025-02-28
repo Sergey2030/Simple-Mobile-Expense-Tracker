@@ -6,6 +6,7 @@ import Categories from "./components/Categories.vue"
 import Transaction from "./components/Transaction.vue"
 import Profile from "./components/Profile.vue"
 
+
 const routes = [
     {
         path: '/',
